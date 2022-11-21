@@ -16,6 +16,7 @@ type ViewProps struct {
 	ViewType ViewType
 	Title    string
 	List     []string
+	Command  string
 }
 
 func RenderMenu(props ViewProps) {
@@ -26,15 +27,17 @@ func RenderMenu(props ViewProps) {
 		fmt.Println("> ====================== <")
 		fmt.Println(props.Title)
 		fmt.Println("---------------------")
-		// depth := strings.Trim(strings.Join(props.breadcrumb, " > "), "[]")
-		// fmt.Println(depth)
 		for i, v := range props.List {
 			fmt.Printf("[%d] %v\n", i+1, v)
 		}
 		fmt.Println("> ====================== <")
 
 	case Confirm:
-
+		fmt.Println("> ====================== <")
+		fmt.Println(props.Title)
+		fmt.Println("---------------------")
+		fmt.Printf("execute `%v` [y/n]\n", props.Command)
+		fmt.Println("> ====================== <")
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sisisin/easy-menu-go/pkg/collection"
 	"sisisin/easy-menu-go/pkg/ui"
 	"strconv"
 	"strings"
@@ -36,9 +37,9 @@ func Run(document *yaml.Node) {
 	props := ui.ViewProps{
 		ViewType: ui.List,
 		Title:    menuTitle,
-	}
-	for _, v := range menuMap.Content {
-		props.List = append(props.List, v.Content[0].Value)
+		List: collection.Map(menuMap.Content, func(v *yaml.Node, _ int) string {
+			return v.Content[0].Value
+		}),
 	}
 
 	ui.RenderMenu(props)
@@ -71,7 +72,6 @@ func Run(document *yaml.Node) {
 }
 
 func getSelectedNodeByCursor(parent *yaml.Node, cursor []int64) *yaml.Node {
-
 	result := parent
 	for i := 0; i < len(cursor); i++ {
 		currentCursor := cursor[i]
@@ -87,47 +87,40 @@ func getSelectedNodeByCursor(parent *yaml.Node, cursor []int64) *yaml.Node {
 }
 
 func toViewProps(node *yaml.Node) ui.ViewProps {
-	p := ui.ViewProps{
-		Title: node.Content[0].Value,
-	}
+	key := node.Content[0]
+	val := node.Content[1]
 
-	switch node.Kind {
+	switch val.Kind {
+
 	case yaml.SequenceNode:
-		p.ViewType = ui.List
+		/*
+			# ∨∨∨∨∨∨∨∨∨∨∨∨∨∨ - node(argument)
+			- Menu List Item:
+				- command1: echo 1
+				# ∨∨∨∨∨∨∨∨ - node.Content[1].Content[1].Content[0].Value
+				- command2: echo 2
+		*/
+		return ui.ViewProps{
+			ViewType: ui.List,
+			Title:    key.Value,
+			List: collection.Map(val.Content, func(v *yaml.Node, _ int) string {
+				return v.Content[0].Value
+			}),
+		}
 	case yaml.MappingNode:
-		switch node.Content[1].Kind {
-		// note: stringのはず
-		case yaml.ScalarNode:
-			p.ViewType = ui.Confirm
-		case yaml.MappingNode:
-			// todo meta付きConfirm
-		case yaml.SequenceNode:
-			p.ViewType = ui.List
+		return ui.ViewProps{
+			ViewType: ui.Confirm,
+			Title:    val.Content[0].Value,
+			Command:  val.Content[1].Value,
+		}
+	case yaml.ScalarNode:
+		return ui.ViewProps{
+			ViewType: ui.Confirm,
+			Title:    key.Value,
+			Command:  val.Value,
 		}
 	}
-
-	/*
-		# ∨∨∨∨∨∨∨∨∨∨∨∨∨∨ - node(argument)
-		- Menu List Item:
-			- command1: echo 1
-			# ∨∨∨∨∨∨∨∨ - node.Content[1].Content[1].Content[0].Value
-			- command2: echo 2
-	*/
-	for _, v := range node.Content[1].Content {
-		p.List = append(p.List, v.Content[0].Value)
-	}
-
-	return p
-}
-
-func visitMenu(node *yaml.Node, cursor []int) *yaml.Node {
-	if len(cursor) == 0 {
-		return node
-	} else {
-		index := cursor[0]
-		next := cursor[1:]
-		return visitMenu(node.Content[index], next)
-	}
+	return ui.ViewProps{}
 }
 
 type Meta struct {
@@ -155,22 +148,11 @@ func debugPrint(node *yaml.Node, cursor []int) {
 
 	var v any
 	node.Decode(&v)
-	fmt.Println(kind, node.Value, node.Tag, depth)
+	fmt.Println(kind, node.Value, node.Tag, depth, v)
 }
 
 func Check(e error) {
 	if e != nil {
 		panic(e)
-	}
-}
-
-func VisitNode(node *yaml.Node, cursor []int) {
-	if len(node.Content) == 0 {
-		return
-	} else {
-		for i, v := range node.Content {
-			debugPrint(v, cursor)
-			VisitNode(v, append(cursor, i))
-		}
 	}
 }

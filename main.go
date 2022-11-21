@@ -22,27 +22,27 @@ func main() {
 }
 
 func run(node *yaml.Node, cursor []int) {
-		switch node.Kind {
-		case yaml.SequenceNode:
-		case yaml.ScalarNode:
-			var v any
-			node.Decode(&v)
-			fmt.Println("Scalar")
-			fmt.Println(v)
-		case yaml.MappingNode:
-			if len(cursor) == 0 {
-				fmt.Println(node.Content[0].Value)
-			}
+	switch node.Kind {
+	case yaml.SequenceNode:
+	case yaml.ScalarNode:
+		var v any
+		node.Decode(&v)
+		fmt.Println("Scalar")
+		fmt.Println(v)
+	case yaml.MappingNode:
+		if len(cursor) == 0 {
+			fmt.Println(node.Content[0].Value)
 		}
+	}
 }
 
-func printMenu(header string, contents []string){
+func printMenu(header string, contents []string) {
 	fmt.Println("=========>")
 	fmt.Println("----------")
 	fmt.Println(header)
 	fmt.Println("----------")
-	for i, c:=range contents {
-		fmt.Printf("[%d] %v", i,c)
+	for i, c := range contents {
+		fmt.Printf("[%d] %v", i, c)
 	}
 	fmt.Println("<=========")
 }
@@ -76,4 +76,3 @@ func p(t *yaml.Node) {
 		}
 	}
 }
-
