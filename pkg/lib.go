@@ -44,8 +44,14 @@ func Run(document *yaml.Node) {
 
 	ui.RenderMenu(props)
 
+	processEasyMenu(menuMap)
+}
+
+func processEasyMenu(menuMap *yaml.Node) {
 	cursor := []int64{}
 	scanner := bufio.NewScanner(os.Stdin)
+
+	var currentViewProps ui.ViewProps
 
 	for {
 		scanner.Scan()
@@ -59,15 +65,20 @@ func Run(document *yaml.Node) {
 				case strconv.ErrRange:
 					// no-op
 				case strconv.ErrSyntax:
-					ui.RenderEtc(in)
+					switch in {
+					case "q":
+						fmt.Println("received `q`, exit.")
+						os.Exit(0)
+					}
 				}
 			}
+		} else {
+			cursor = append(cursor, num)
+			selected := getSelectedNodeByCursor(menuMap, cursor)
+			currentViewProps = toViewProps(selected)
+			ui.RenderMenu(currentViewProps)
 		}
 
-		cursor = append(cursor, num)
-		selected := getSelectedNodeByCursor(menuMap, cursor)
-		props := toViewProps(selected)
-		ui.RenderMenu(props)
 	}
 }
 

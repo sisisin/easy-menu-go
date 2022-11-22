@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"os"
 )
 
 type ViewType uint32
@@ -38,14 +37,5 @@ func RenderMenu(props ViewProps) {
 		fmt.Println("---------------------")
 		fmt.Printf("execute `%v` [y/n]\n", props.Command)
 		fmt.Println("> ====================== <")
-	}
-}
-
-func RenderEtc(in string) {
-	if in == "q" {
-		fmt.Println("received `q`, exit.")
-		os.Exit(0)
-	} else {
-		fmt.Printf("received `%v`\n", in)
 	}
 }
