@@ -9,6 +9,7 @@ type ViewType uint32
 const (
 	List ViewType = 1 << iota
 	Confirm
+	Unsupported
 )
 
 type ViewProps struct {
@@ -22,6 +23,12 @@ func RenderMenu(props ViewProps) {
 	// fmt.Print("\033[H\033[2J")
 	fmt.Println("*** *** *** *** *** *** ***")
 	switch props.ViewType {
+	case Unsupported:
+		fmt.Println("> ====================== <")
+		fmt.Println(props.Title)
+		fmt.Println("---------------------")
+		fmt.Println("Unsupported config")
+		fmt.Println("> ====================== <")
 	case List:
 		fmt.Println("> ====================== <")
 		fmt.Println(props.Title)

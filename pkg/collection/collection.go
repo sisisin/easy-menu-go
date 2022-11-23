@@ -17,3 +17,12 @@ func Filter[V any](elms []V, fn func(V, int) bool) []V {
 	}
 	return outputs
 }
+
+func FindIndex[V any](elms []V, fn func(V, int) bool) int {
+	for i, v := range elms {
+		if fn(v, i) {
+			return i
+		}
+	}
+	return -1
+}
