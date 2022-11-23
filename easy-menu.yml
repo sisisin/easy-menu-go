@@ -7,6 +7,7 @@ main menu:
         cwd
         echo 1
   - simple echo: 'echo simple!'
+  - failed operation: 'cho simple!'
   - deploy menu:
       - server1:
           run: 'echo !! deploy server1 !!'
