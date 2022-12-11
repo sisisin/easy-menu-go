@@ -2,7 +2,8 @@ package command
 
 import (
 	"os/exec"
-	m "sisisin/easy-menu-go/pkg/menu"
+
+	m "github.com/sisisin/easy-menu-go/pkg/menu"
 )
 
 type CommandProcessState uint32

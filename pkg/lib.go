@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sisisin/easy-menu-go/pkg/collection"
-	"sisisin/easy-menu-go/pkg/command"
-	m "sisisin/easy-menu-go/pkg/menu"
-	"sisisin/easy-menu-go/pkg/ui"
 	"strconv"
+
+	"github.com/sisisin/easy-menu-go/pkg/collection"
+	"github.com/sisisin/easy-menu-go/pkg/command"
+	m "github.com/sisisin/easy-menu-go/pkg/menu"
+	"github.com/sisisin/easy-menu-go/pkg/ui"
 
 	"gopkg.in/yaml.v3"
 )

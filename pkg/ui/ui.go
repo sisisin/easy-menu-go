@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"sisisin/easy-menu-go/pkg/command"
+
+	"github.com/sisisin/easy-menu-go/pkg/command"
 )
 
 type ViewType uint32

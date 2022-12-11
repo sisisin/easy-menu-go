@@ -2,7 +2,8 @@ package menu
 
 import (
 	"fmt"
-	"sisisin/easy-menu-go/pkg/collection"
+
+	"github.com/sisisin/easy-menu-go/pkg/collection"
 
 	"gopkg.in/yaml.v3"
 )

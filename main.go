@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"sisisin/easy-menu-go/pkg"
+	"github.com/sisisin/easy-menu-go/pkg"
 
 	"gopkg.in/yaml.v3"
 )

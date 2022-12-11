@@ -1,4 +1,4 @@
-module sisisin/easy-menu-go
+module github.com/sisisin/easy-menu-go
 
 go 1.19
 
