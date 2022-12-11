@@ -10,7 +10,8 @@
       "request": "launch",
       "mode": "auto",
       "program": "main.go",
-      "debugAdapter": "dlv-dap"
+      "debugAdapter": "dlv-dap",
+      "console": "integratedTerminal"
     }
   ]
 }

@@ -79,6 +79,14 @@ func processEasyMenu(menu m.MenuItem) {
 		fmt.Print("> ")
 		scanner.Scan()
 		in := scanner.Text()
+
+		if currentViewProps.ViewType == ui.CommandResult {
+			cursor = cursor[:len(cursor)-1]
+			currentViewProps = getViewProps(getCurrent(menu, cursor), &state)
+			ui.RenderMenu(currentViewProps)
+			continue
+		}
+
 		num, err := strconv.ParseInt(in, 10, 0)
 
 		if err != nil {

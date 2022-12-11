@@ -7,6 +7,8 @@ main menu:
         cwd
         echo 1
   - simple echo: 'echo simple!'
+  - y: |
+      ls -al --color=always
   - failed operation: 'cho simple!'
   - deploy menu:
       - server1:

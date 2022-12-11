@@ -2,6 +2,8 @@ package ui
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"sisisin/easy-menu-go/pkg/command"
 )
 
@@ -23,10 +25,10 @@ type ViewProps struct {
 }
 
 func RenderMenu(props ViewProps) {
-	fmt.Print("\033[H\033[2J")
-	// fmt.Println()
-	// fmt.Println("*** *** *** *** *** *** ***")
-	// fmt.Println()
+	// fmt.Print("\033[H\033[2J")
+	fmt.Println()
+	fmt.Println("*** *** *** *** *** *** ***")
+	fmt.Println()
 
 	switch props.ViewType {
 	case Unsupported:
@@ -51,12 +53,52 @@ func RenderMenu(props ViewProps) {
 		fmt.Printf("execute `%v` [y/n]\n", props.Command)
 		fmt.Println("> ====================== <")
 	case CommandResult:
-		if props.CommandState.ProcessState == command.Failed {
-			renderError(props)
-		} else {
-			renderCommandSucceeded(props)
-		}
+		renderExecuting(props)
 	}
+}
+
+func renderExecuting(props ViewProps) {
+	fmt.Println("> ====================== <")
+	fmt.Println("Executing: ", props.Title)
+	fmt.Println("---------------------")
+
+	cmd := props.CommandState.Cmd
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		printFail(props, err)
+		return
+	}
+	defer stdout.Close()
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		printFail(props, err)
+		return
+	}
+	defer stderr.Close()
+
+	if err := cmd.Start(); err != nil {
+		printFail(props, err)
+		return
+	}
+
+	go io.Copy(os.Stdout, stdout)
+	go io.Copy(os.Stderr, stderr)
+
+	if err := cmd.Wait(); err != nil {
+		printFail(props, err)
+		return
+	}
+
+	fmt.Printf("succeeded `%v`\n", props.Command)
+	fmt.Println("> ====================== <")
+	fmt.Println("press any key to back menu")
+}
+
+func printFail(props ViewProps, err error) {
+	fmt.Printf("failed `%v`\n", props.Command)
+	fmt.Println(err)
+	fmt.Println("> ====================== <")
 }
 
 func renderError(props ViewProps) {
