@@ -90,14 +90,15 @@ func renderExecuting(props ViewProps) {
 		return
 	}
 
+	fmt.Println("---------------------")
 	fmt.Printf("succeeded `%v`\n", props.Command)
 	fmt.Println("> ====================== <")
 	fmt.Println("press any key to back menu")
 }
 
 func printFail(props ViewProps, err error) {
-	fmt.Printf("failed `%v`\n", props.Command)
-	fmt.Println(err)
+	fmt.Println("---------------------")
+	fmt.Println("error: '", err, "'")
 	fmt.Println("> ====================== <")
 }
 

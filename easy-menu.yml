@@ -4,8 +4,8 @@ main menu:
         ENV1: val_env1_override
       work_dir: ./work
       run: |
-        cwd
         echo 1
+        cwd
   - simple echo: 'echo simple!'
   - y: |
       ls -al --color=always
