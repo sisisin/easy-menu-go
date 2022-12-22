@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 
 	"github.com/sisisin/easy-menu-go/pkg"
@@ -11,7 +12,11 @@ import (
 func main() {
 	var document yaml.Node
 
-	err := pkg.LoadConfig(&document)
+	var configFlag string
+	flag.StringVar(&configFlag, "config", "", "config file path")
+	flag.Parse()
+
+	err := pkg.LoadConfig(&document, configFlag)
 	pkg.Check(err)
 	pkg.Run(&document)
 
