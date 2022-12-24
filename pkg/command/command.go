@@ -23,10 +23,12 @@ type CommandState struct {
 	Cmd          *exec.Cmd
 }
 
-func ExecuteCommand(current m.MenuItem) CommandState {
+func ExecuteCommand(rootMenu m.MenuItem, cursor []int64) CommandState {
+	current := getCurrent(rootMenu, cursor)
 	command := current.Command.Command
 	cmd := exec.Command("sh", "-c", command)
 
+	println("current workdir: ", current.WorkDir)
 	return CommandState{
 		Command:      command,
 		ProcessState: Ready,
@@ -34,20 +36,11 @@ func ExecuteCommand(current m.MenuItem) CommandState {
 		Cmd:          cmd,
 	}
 }
-func ExecuteCommand2(current m.MenuItem) CommandState {
-	command := current.Command.Command
-	cmd := exec.Command("sh", "-c", command)
 
-	if err := cmd.Start(); err != nil {
-		return CommandState{
-			Command:      command,
-			ProcessState: Failed,
-			Err:          err,
-		}
+func getCurrent(rootMenu m.MenuItem, cursor []int64) m.MenuItem {
+	target := rootMenu
+	for _, v := range cursor {
+		target = target.SubMenu.Items[v]
 	}
-	return CommandState{
-		Command:      command,
-		ProcessState: Executing,
-		Err:          nil,
-	}
+	return target
 }

@@ -1,11 +1,12 @@
 main menu:
+  - list files: 'ls -al --color=always'
   - echo command with option:
       env:
         ENV1: val_env1_override
-      work_dir: ./work
+      work_dir: ./tmp/
       run: |
         echo 1
-        cwd
+        pwd
   - simple echo: 'echo simple!'
   - y: |
       ls -al --color=always
@@ -20,4 +21,4 @@ main menu:
         echo [{"eval list1": "echo list1!"}, {"eval list2", {"run": "echo list2!"}}]
 env:
   ENV1: val_global_env
-work_dir: ./work_global
+work_dir: ./tmp/work1

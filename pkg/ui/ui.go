@@ -51,7 +51,7 @@ func RenderMenu(props ViewProps) {
 		fmt.Println("> ====================== <")
 		fmt.Println(props.Title)
 		fmt.Println("---------------------")
-		fmt.Printf("execute `%v` [y/n]\n", props.Command)
+		fmt.Println("execute [y/n]")
 		fmt.Println("> ====================== <")
 	case CommandResult:
 		renderExecuting(props)
@@ -92,7 +92,7 @@ func renderExecuting(props ViewProps) {
 	}
 
 	fmt.Println("---------------------")
-	fmt.Printf("succeeded `%v`\n", props.Command)
+	fmt.Println("succeeded, exitCode: ", cmd.ProcessState.ExitCode())
 	fmt.Println("> ====================== <")
 	fmt.Println("press any key to back menu")
 }
