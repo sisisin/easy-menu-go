@@ -2,6 +2,7 @@ package menu
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/sisisin/easy-menu-go/pkg/collection"
 
@@ -33,13 +34,72 @@ type CommandSpec struct {
 	Command string
 }
 
-func ParseMenu(node *yaml.Node) *MenuItem {
+type mappedNode struct {
+	menu    mapEntry
+	env     mapEntry
+	workDir mapEntry
+}
+
+func validatedNode(node *yaml.Node) mappedNode {
 	if node.Kind != yaml.MappingNode {
 		panic("node must be MappingNode")
 	}
 
-	key := node.Content[0]
-	value := node.Content[1]
+	var env *mapEntry = nil
+	var workDir *mapEntry = nil
+	var menu *mapEntry = nil
+
+	nodeEntries := toEntries(node)
+
+	for i := 0; i < len(nodeEntries); i++ {
+		v := nodeEntries[i]
+		switch v.key.Value {
+		case "env":
+			if env == nil {
+				env = &v
+			} else {
+				fmt.Printf("error: duplicate env keys. env must be one.")
+				os.Exit(1)
+			}
+		case "work_dir":
+			if workDir == nil {
+				workDir = &v
+			} else {
+				fmt.Printf("error: duplicate work_dir keys. work_dir must be one.")
+				os.Exit(1)
+			}
+		default:
+			if menu == nil {
+				menu = &v
+			} else {
+				fmt.Printf("error: menu definition must be one. keys: `%s`, `%s`\n", menu.key.Value, v.key.Value)
+				os.Exit(1)
+			}
+		}
+	}
+
+	if menu == nil {
+		fmt.Printf("error: menu definition must be exist\n")
+		os.Exit(1)
+	}
+	ret := mappedNode{
+		menu: *menu,
+	}
+	if workDir != nil {
+		ret.workDir = *workDir
+	}
+	if env != nil {
+		ret.env = *env
+	}
+
+	return ret
+}
+
+func ParseMenu(node *yaml.Node) *MenuItem {
+	n := validatedNode(node)
+
+	key := n.menu.key
+	value := n.menu.value
 
 	switch value.Kind {
 	case yaml.SequenceNode:
@@ -65,7 +125,7 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 			},
 		}
 	case yaml.MappingNode:
-		entries := toEntries(value)
+		entries := toEntries(&value)
 		idx := collection.FindIndex(entries, func(v mapEntry, _ int) bool {
 			return v.key.Value == "eval"
 		})
@@ -112,7 +172,7 @@ func toEntries(node *yaml.Node) []mapEntry {
 		panic("node must be MappingNode")
 	}
 
-	entries := []mapEntry{}
+	var entries []mapEntry
 	for i := 0; i < len(node.Content); i += 2 {
 		entries = append(entries, mapEntry{
 			key:   *node.Content[i],

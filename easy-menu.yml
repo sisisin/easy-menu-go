@@ -21,4 +21,7 @@ main menu:
         echo [{"eval list1": "echo list1!"}, {"eval list2", {"run": "echo list2!"}}]
 env:
   ENV1: val_global_env
+# env: ''
 work_dir: ./tmp/work1
+# work_dir: ./tmp/work2
+# foo: echo 'var'
