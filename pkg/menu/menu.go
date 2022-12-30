@@ -107,7 +107,7 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 			Kind:    SubMenu,
 			Name:    key.Value,
 			Env:     map[string]string{},
-			WorkDir: "todo",
+			WorkDir: "",
 			SubMenu: &MenuConfiguration{
 				Items: collection.Map(value.Content, func(v *yaml.Node, _ int) MenuItem {
 					return *ParseMenu(v)
@@ -119,7 +119,7 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 			Kind:    Command,
 			Name:    key.Value,
 			Env:     map[string]string{},
-			WorkDir: "todo",
+			WorkDir: "",
 			Command: &CommandSpec{
 				Command: value.Value,
 			},

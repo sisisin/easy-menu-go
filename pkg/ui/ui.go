@@ -59,6 +59,10 @@ func RenderMenu(props ViewProps) {
 }
 
 func renderExecuting(props ViewProps) {
+	if props.CommandState.Err != nil {
+		printFail(props, props.CommandState.Err)
+		return
+	}
 	fmt.Println("> ====================== <")
 	fmt.Println("Executing: ", props.Title)
 	fmt.Println("---------------------")

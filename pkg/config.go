@@ -9,12 +9,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func LoadConfig(out *yaml.Node, configPathFromArg string) (err error) {
+func LoadConfig(out *yaml.Node, configPathFromArg string) (string, error) {
 	configFile := validConfigPathOrExit(configPathFromArg)
+	println(configFile)
 	buf, err := os.ReadFile(configFile)
 	Check(err)
 
-	return yaml.Unmarshal(buf, out)
+	return configFile, yaml.Unmarshal(buf, out)
 }
 
 const (

@@ -15,12 +15,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func Run(document *yaml.Node) {
+func Run(document *yaml.Node, configFile string) {
 	m := m.ParseMenu(document.Content[0])
 	props := getViewProps(*m, nil)
 	ui.RenderMenu(props)
 
-	processEasyMenu(*m)
+	processEasyMenu(*m, configFile)
 }
 
 func getCurrent(rootMenu m.MenuItem, cursor []int64) m.MenuItem {
@@ -65,7 +65,7 @@ func getViewProps(target m.MenuItem, state *command.CommandState) ui.ViewProps {
 	}
 }
 
-func processEasyMenu(menu m.MenuItem) {
+func processEasyMenu(menu m.MenuItem, configFile string) {
 	var currentViewProps ui.ViewProps
 	cursor := []int64{}
 
@@ -114,7 +114,7 @@ func processEasyMenu(menu m.MenuItem) {
 						}
 					case "y":
 						if currentViewProps.ViewType == ui.Confirm {
-							state = command.ExecuteCommand(menu, cursor)
+							state = command.ExecuteCommand(menu, cursor, configFile)
 						}
 					}
 				}

@@ -16,9 +16,9 @@ func main() {
 	flag.StringVar(&configFlag, "config", "", "config file path")
 	flag.Parse()
 
-	err := pkg.LoadConfig(&document, configFlag)
+	configFile, err := pkg.LoadConfig(&document, configFlag)
 	pkg.Check(err)
-	pkg.Run(&document)
+	pkg.Run(&document, configFile)
 
 	os.Exit(0)
 }
