@@ -11,7 +11,6 @@ import (
 
 func LoadConfig(out *yaml.Node, configPathFromArg string) (string, error) {
 	configFile := validConfigPathOrExit(configPathFromArg)
-	println(configFile)
 	buf, err := os.ReadFile(configFile)
 	Check(err)
 

@@ -17,6 +17,8 @@ import (
 
 func Run(document *yaml.Node, configFile string) {
 	m := m.ParseMenu(document.Content[0])
+	// v, _ := json.Marshal(*m)
+	// println(string(v))
 	props := getViewProps(*m, nil)
 	ui.RenderMenu(props)
 

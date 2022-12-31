@@ -35,9 +35,11 @@ type CommandSpec struct {
 }
 
 type mappedNode struct {
-	menu    mapEntry
+	menu    *mapEntry
+	run     *mapEntry
 	env     mapEntry
-	workDir mapEntry
+	workDir string
+	eval    *mapEntry
 }
 
 func validatedNode(node *yaml.Node) mappedNode {
@@ -48,6 +50,8 @@ func validatedNode(node *yaml.Node) mappedNode {
 	var env *mapEntry = nil
 	var workDir *mapEntry = nil
 	var menu *mapEntry = nil
+	var run *mapEntry = nil
+	var eval *mapEntry = nil
 
 	nodeEntries := toEntries(node)
 
@@ -58,16 +62,31 @@ func validatedNode(node *yaml.Node) mappedNode {
 			if env == nil {
 				env = &v
 			} else {
-				fmt.Printf("error: duplicate env keys. env must be one.")
+				fmt.Printf("error: duplicate keys. key `env` must be one.")
 				os.Exit(1)
 			}
 		case "work_dir":
 			if workDir == nil {
 				workDir = &v
 			} else {
-				fmt.Printf("error: duplicate work_dir keys. work_dir must be one.")
+				fmt.Printf("error: duplicate keys. key `work_dir` must be one.")
 				os.Exit(1)
 			}
+		case "run":
+			if run == nil {
+				run = &v
+			} else {
+				fmt.Printf("error: duplicate keys. key `run` must be one.")
+				os.Exit(1)
+			}
+		case "eval":
+			if eval == nil {
+				eval = &v
+			} else {
+				fmt.Printf("error: duplicate keys. key `eval` must be one.")
+				os.Exit(1)
+			}
+
 		default:
 			if menu == nil {
 				menu = &v
@@ -78,15 +97,27 @@ func validatedNode(node *yaml.Node) mappedNode {
 		}
 	}
 
-	if menu == nil {
-		fmt.Printf("error: menu definition must be exist\n")
+	if menu != nil && run != nil {
+		fmt.Printf("error: menu definition or key `run` must be exist one, but exist both.\n")
 		os.Exit(1)
 	}
-	ret := mappedNode{
-		menu: *menu,
+	/*
+		todo: validation
+			- eval/runは片方だけ有効
+	*/
+
+	ret := mappedNode{}
+	if menu != nil {
+		ret.menu = menu
+	}
+	if run != nil {
+		ret.run = run
+	}
+	if eval != nil {
+		ret.eval = eval
 	}
 	if workDir != nil {
-		ret.workDir = *workDir
+		ret.workDir = (*workDir).value.Value
 	}
 	if env != nil {
 		ret.env = *env
@@ -97,17 +128,16 @@ func validatedNode(node *yaml.Node) mappedNode {
 
 func ParseMenu(node *yaml.Node) *MenuItem {
 	n := validatedNode(node)
-
-	key := n.menu.key
+	menuName := n.menu.key.Value
 	value := n.menu.value
 
 	switch value.Kind {
 	case yaml.SequenceNode:
 		return &MenuItem{
 			Kind:    SubMenu,
-			Name:    key.Value,
-			Env:     map[string]string{},
-			WorkDir: "",
+			Name:    menuName,
+			Env:     nil,
+			WorkDir: n.workDir,
 			SubMenu: &MenuConfiguration{
 				Items: collection.Map(value.Content, func(v *yaml.Node, _ int) MenuItem {
 					return *ParseMenu(v)
@@ -115,51 +145,63 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 			},
 		}
 	case yaml.ScalarNode:
+		// todo: validate if Env,WorkDir are not empty
 		return &MenuItem{
 			Kind:    Command,
-			Name:    key.Value,
-			Env:     map[string]string{},
+			Name:    menuName,
+			Env:     nil,
 			WorkDir: "",
 			Command: &CommandSpec{
 				Command: value.Value,
 			},
 		}
 	case yaml.MappingNode:
-		entries := toEntries(&value)
-		idx := collection.FindIndex(entries, func(v mapEntry, _ int) bool {
-			return v.key.Value == "eval"
-		})
-		if idx > -1 {
-			// todo
+		child := validatedNode(&value)
+
+		if child.run == nil && child.eval == nil {
+			fmt.Printf("error: run menu must have key `run` or `eval`\n")
+			os.Exit(1)
+		}
+
+		if child.eval != nil {
 			return &MenuItem{
 				Kind: EvalMenu,
-				Name: key.Value,
+				Name: menuName,
 			}
-		} else {
-			item := &MenuItem{
-				Kind: Command,
-				Name: key.Value,
-				Env:  map[string]string{},
-			}
-			for _, v := range entries {
-				switch v.key.Value {
-				case "env":
-					// todo
-				case "work_dir":
-					item.WorkDir = v.value.Value
-				case "run":
-					item.Command = &CommandSpec{
-						Command: v.value.Value,
-					}
-				}
-			}
-			return item
 		}
+
+		if child.run != nil {
+			return &MenuItem{
+				Kind:    Command,
+				Name:    menuName,
+				Env:     parseEnv(child.env.value),
+				WorkDir: child.workDir,
+				SubMenu: nil,
+				Command: &CommandSpec{
+					Command: child.run.value.Value,
+				},
+			}
+		}
+
+		fmt.Printf("error: command definition must have `eval` or `run` value")
+		os.Exit(1)
 	default:
 		println("????????")
 	}
 
 	return nil
+}
+
+func parseEnv(envNode yaml.Node) map[string]string {
+	// todo: validation
+
+	var env map[string]string = nil
+	if err := envNode.Decode(&env); err != nil {
+		// todo: error message
+		fmt.Printf("%v", err)
+		os.Exit(1)
+	}
+	return env
 }
 
 type mapEntry struct {

@@ -3,9 +3,9 @@ main menu:
   - echo command with option:
       env:
         ENV1: val_env1_override
-      work_dir: ./tmp/
+      work_dir: ../tmp/
       run: |
-        echo 1
+        echo "env1 -> $ENV1"
         pwd
   - simple echo: 'echo simple!'
   - y: |
@@ -16,12 +16,14 @@ main menu:
           run: 'echo !! deploy server1 !!'
       - server2:
           run: 'echo !! deploy server2 !!'
+    env:
+      ENV2: env2
   - eval menu:
       eval: |
         echo [{"eval list1": "echo list1!"}, {"eval list2", {"run": "echo list2!"}}]
 env:
   ENV1: val_global_env
 # env: ''
-work_dir: ./tmp/work1
+work_dir: ../tmp/work1
 # work_dir: ./tmp/work2
 # foo: echo 'var'
