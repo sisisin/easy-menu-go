@@ -136,7 +136,7 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 		return &MenuItem{
 			Kind:    SubMenu,
 			Name:    menuName,
-			Env:     nil,
+			Env:     parseEnv(n.env.value),
 			WorkDir: n.workDir,
 			SubMenu: &MenuConfiguration{
 				Items: collection.Map(value.Content, func(v *yaml.Node, _ int) MenuItem {
@@ -146,15 +146,9 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 		}
 	case yaml.ScalarNode:
 		// todo: validate if Env,WorkDir are not empty
-		return &MenuItem{
-			Kind:    Command,
-			Name:    menuName,
-			Env:     nil,
-			WorkDir: "",
-			Command: &CommandSpec{
-				Command: value.Value,
-			},
-		}
+		c := factory.newSimpleCommand(menuName, value.Value)
+		return &c
+
 	case yaml.MappingNode:
 		child := validatedNode(&value)
 
@@ -245,4 +239,20 @@ func debugPrint(node *yaml.Node) {
 
 	fmt.Println(kind, node.Value, node.Tag)
 	fmt.Println(string(y))
+}
+
+type factoryT struct{}
+
+var factory factoryT
+
+func (f factoryT) newSimpleCommand(name string, command string) MenuItem {
+	return MenuItem{
+		Kind:    Command,
+		Name:    name,
+		WorkDir: "",
+		Env:     nil,
+		Command: &CommandSpec{
+			Command: command,
+		},
+	}
 }
