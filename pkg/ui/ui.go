@@ -112,21 +112,3 @@ func printFail(props ViewProps, err error) {
 	fmt.Println("error: '", err, "'")
 	fmt.Println("> ====================== <")
 }
-
-func renderError(props ViewProps) {
-	fmt.Println("> ====================== <")
-	fmt.Println(props.Title)
-	fmt.Println("---------------------")
-	fmt.Printf("failed `%v`\n", props.Command)
-	fmt.Println(props.CommandState.Err)
-	fmt.Println("> ====================== <")
-}
-
-func renderCommandSucceeded(props ViewProps) {
-	fmt.Println("> ====================== <")
-	fmt.Println("Executing: ", props.Title)
-	fmt.Println("---------------------")
-	fmt.Printf("succeeded `%v`\n", props.Command)
-	fmt.Println("> ====================== <")
-	fmt.Println("press any key to back menu")
-}
