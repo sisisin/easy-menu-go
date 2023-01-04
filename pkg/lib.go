@@ -16,6 +16,11 @@ import (
 func Run() {
 	flags := args.GetFlags()
 
+	if flags.Version {
+		fmt.Println(args.GetVersionStr())
+		os.Exit(0)
+	}
+
 	configFile, document := LoadConfig(flags.Config)
 	m := m.ParseMenu(document.Content[0])
 	// v, _ := json.Marshal(*m)
