@@ -150,6 +150,7 @@ func ParseMenu(node *yaml.Node) *MenuItem {
 		return &c
 
 	case yaml.MappingNode:
+		// todo: validate if parent node has Env,WorkDir
 		child := validatedNode(&value)
 
 		if child.run == nil && child.eval == nil {

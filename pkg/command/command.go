@@ -26,7 +26,7 @@ type CommandState struct {
 	Cmd          *exec.Cmd
 }
 
-func ExecuteCommand(rootMenu m.MenuItem, cursor []int64, configFile string) CommandState {
+func GetSelectedCommandState(rootMenu m.MenuItem, cursor []int64, configFile string) CommandState {
 	current := getCurrent(rootMenu, cursor)
 	command := current.Command.Command
 	cmd := exec.Command("sh", "-c", command)

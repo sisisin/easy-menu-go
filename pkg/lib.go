@@ -115,7 +115,7 @@ func processEasyMenu(menu m.MenuItem, configFile string) {
 						}
 					case "y":
 						if currentViewProps.ViewType == ui.Confirm {
-							state = command.ExecuteCommand(menu, cursor, configFile)
+							state = command.GetSelectedCommandState(menu, cursor, configFile)
 						}
 					}
 				}
