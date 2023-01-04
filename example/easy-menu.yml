@@ -7,17 +7,15 @@ main menu:
       run: |
         echo "env1 -> $ENV1"
         pwd
-  - simple echo: 'echo simple!'
-  - y: |
-      ls -al --color=always
+  - simple echo: 'echo "simple! env1 -> $ENV1"'
   - failed operation: 'cho simple!'
   - deploy menu:
       - server1:
-          run: 'echo !! deploy server1 !!'
+          run: 'echo "!! deploy server1 !! env1 -> $ENV2"'
       - server2:
           run: 'echo !! deploy server2 !!'
     env:
-      ENV2: env2
+      ENV2: env2 value
   - eval menu:
       eval: |
         echo [{"eval list1": "echo list1!"}, {"eval list2", {"run": "echo list2!"}}]

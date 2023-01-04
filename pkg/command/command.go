@@ -42,6 +42,7 @@ func GetSelectedCommandState(rootMenu m.MenuItem, cursor []int64, configFile str
 	}
 	cmd.Dir = dir
 
+	cmd.Env = getEnv(rootMenu, cursor)
 	return CommandState{
 		Command:      command,
 		ProcessState: Ready,
@@ -56,6 +57,27 @@ func getCurrent(rootMenu m.MenuItem, cursor []int64) m.MenuItem {
 		target = target.SubMenu.Items[v]
 	}
 	return target
+}
+
+func getEnv(rootMenu m.MenuItem, cursor []int64) []string {
+	var envMap map[string]string = nil
+	target := rootMenu
+	if target.Env != nil {
+		envMap = target.Env
+	}
+	for _, v := range cursor {
+		target = target.SubMenu.Items[v]
+		if target.Env != nil {
+			envMap = target.Env
+		}
+	}
+
+	var envArr []string
+	for k, v := range envMap {
+		envArr = append(envArr, fmt.Sprintf("%s=%s", k, v))
+	}
+
+	return envArr
 }
 
 func getDir(rootMenu m.MenuItem, cursor []int64, configFile string) (string, error) {
