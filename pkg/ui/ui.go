@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/sisisin/easy-menu-go/pkg/args"
 	"github.com/sisisin/easy-menu-go/pkg/command"
 )
 
@@ -26,10 +27,15 @@ type ViewProps struct {
 }
 
 func RenderMenu(props ViewProps) {
-	// fmt.Print("\033[H\033[2J")
-	fmt.Println()
-	fmt.Println("*** *** *** *** *** *** ***")
-	fmt.Println()
+	debug := args.GetEnvs().Debug
+
+	if debug {
+		fmt.Println()
+		fmt.Println("*** *** *** *** *** *** ***")
+		fmt.Println()
+	} else {
+		fmt.Print("\033[H\033[2J")
+	}
 
 	switch props.ViewType {
 	case Unsupported:

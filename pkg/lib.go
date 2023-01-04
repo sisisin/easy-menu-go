@@ -6,15 +6,17 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/sisisin/easy-menu-go/pkg/args"
 	"github.com/sisisin/easy-menu-go/pkg/collection"
 	"github.com/sisisin/easy-menu-go/pkg/command"
 	m "github.com/sisisin/easy-menu-go/pkg/menu"
 	"github.com/sisisin/easy-menu-go/pkg/ui"
-
-	"gopkg.in/yaml.v3"
 )
 
-func Run(document *yaml.Node, configFile string) {
+func Run() {
+	flags := args.GetFlags()
+
+	configFile, document := LoadConfig(flags.Config)
 	m := m.ParseMenu(document.Content[0])
 	// v, _ := json.Marshal(*m)
 	// println(string(v))
