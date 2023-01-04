@@ -3,18 +3,23 @@ package pkg
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
 
-func LoadConfig(out *yaml.Node, configPathFromArg string) (string, error) {
+func LoadConfig(configPathFromArg string) (string, *yaml.Node) {
 	configFile := validConfigPathOrExit(configPathFromArg)
 	buf, err := os.ReadFile(configFile)
-	Check(err)
+	checkError(err)
 
-	return configFile, yaml.Unmarshal(buf, out)
+	var node yaml.Node
+	err = yaml.Unmarshal(buf, &node)
+	checkError(err)
+
+	return configFile, &node
 }
 
 const (
@@ -24,7 +29,7 @@ const (
 
 func validConfigPathOrExit(configPathFromArg string) string {
 	wd, err := os.Getwd()
-	Check(err)
+	checkError(err)
 
 	var configFile string
 	if configPathFromArg == "" {
@@ -60,5 +65,12 @@ func validConfigPathOrExit(configPathFromArg string) string {
 
 		defer f.Close()
 		return configFile
+	}
+}
+
+func checkError(e error) {
+	if e != nil {
+		log.Fatalln(e)
+		panic(e)
 	}
 }

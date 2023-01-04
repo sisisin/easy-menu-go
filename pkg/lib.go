@@ -3,7 +3,6 @@ package pkg
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 
@@ -131,12 +130,5 @@ func processEasyMenu(menu m.MenuItem, configFile string) {
 
 		currentViewProps = getViewProps(getCurrent(menu, cursor), &state)
 		ui.RenderMenu(currentViewProps)
-	}
-}
-
-func Check(e error) {
-	if e != nil {
-		log.Fatalln(e)
-		panic(e)
 	}
 }
