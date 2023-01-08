@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -34,31 +33,43 @@ func validConfigPathOrExit(configPathFromArg string) string {
 	checkError(err)
 
 	if configPathFromArg == "" {
-		configFile := filepath.Join(wd, defaultConfigPath1)
-
-		f, err := os.Open(configFile)
-		if err != nil {
-			configFile = filepath.Join(wd, defaultConfigPath2)
+		configFile, ok := existsDefaultConfig(wd)
+		if !ok {
+			exit(1, fmt.Sprintf("Error: cannot read config file: %s\n", configFile))
 		}
 
-		exitIfPathError(err)
-		defer f.Close()
 		return configFile
 	} else {
 		configFile := filepath.Join(wd, configPathFromArg)
-		f, err := os.Open(configFile)
-		exitIfPathError(err)
-		defer f.Close()
-		return configFile
+		if fileExists(configFile) {
+			return configFile
+		}
+		exit(1, fmt.Sprintf("Error: cannot read config file: %s\n", configFile))
+		// 到達しない
+		return ""
 	}
-
 }
 
-func exitIfPathError(err error) {
-	switch castedErr := err.(type) {
-	case *fs.PathError:
-		exit(1, fmt.Sprintf("Error: cannot read config file `%s`\n%s\n", castedErr.Path, castedErr.Err))
+func existsDefaultConfig(basename string) (path string, ok bool) {
+	f := filepath.Join(basename, defaultConfigPath1)
+	if fileExists(f) {
+		return f, true
 	}
+
+	f = filepath.Join(basename, defaultConfigPath2)
+	if fileExists(f) {
+		return f, true
+	}
+
+	return "", false
+}
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
 
 var exit = func(exitCode int, msg string) {
