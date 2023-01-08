@@ -27,45 +27,43 @@ const (
 	defaultConfigPath2 = "easy-menu.yaml"
 )
 
+var getwd = os.Getwd
+
 func validConfigPathOrExit(configPathFromArg string) string {
-	wd, err := os.Getwd()
+	wd, err := getwd()
 	checkError(err)
 
-	var configFile string
 	if configPathFromArg == "" {
-		configFile = filepath.Join(wd, defaultConfigPath1)
+		configFile := filepath.Join(wd, defaultConfigPath1)
 
 		f, err := os.Open(configFile)
 		if err != nil {
 			configFile = filepath.Join(wd, defaultConfigPath2)
-			f, err = os.Open(configFile)
 		}
 
-		switch err := err.(type) {
-		case *fs.PathError:
-			fmt.Printf("Error: cannot read config file `%s`\n", err.Path)
-			fmt.Printf("%s\n", err.Err)
-
-			os.Exit(1)
-		}
+		exitIfPathError(err)
 		defer f.Close()
-
 		return configFile
 	} else {
-		configFile = filepath.Join(wd, configPathFromArg)
+		configFile := filepath.Join(wd, configPathFromArg)
 		f, err := os.Open(configFile)
-
-		switch err := err.(type) {
-		case *fs.PathError:
-			fmt.Printf("Error: cannot read config file `%s`\n", err.Path)
-			fmt.Printf("%s\n", err.Err)
-
-			os.Exit(1)
-		}
-
+		exitIfPathError(err)
 		defer f.Close()
 		return configFile
 	}
+
+}
+
+func exitIfPathError(err error) {
+	switch castedErr := err.(type) {
+	case *fs.PathError:
+		exit(1, fmt.Sprintf("Error: cannot read config file `%s`\n%s\n", castedErr.Path, castedErr.Err))
+	}
+}
+
+var exit = func(exitCode int, msg string) {
+	fmt.Printf("%s", msg)
+	os.Exit(exitCode)
 }
 
 func checkError(e error) {
