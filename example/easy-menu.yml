@@ -1,23 +1,25 @@
-main menu:
-  - echo command with option:
-      env:
-        ENV1: val_env1_override
-      work_dir: ../tmp/
-      run: |
-        echo "env1 -> $ENV1"
-        pwd
-  - simple echo: 'echo "simple! env1 -> $ENV1"'
-  - failed operation: 'cho simple!'
-  - deploy menu:
-      - server1:
-          run: 'echo "!! deploy server1 !! env1 -> $ENV2"'
-      - server2:
-          run: 'echo !! deploy server2 !!'
+name: main menu
+menu:
+  - name: echo command with option
+    env:
+      ENV1: val_env1_override
+    work_dir: ../tmp/
+    run: |
+      echo "env1 -> $ENV1"
+      pwd
+  - run: 'echo "simple! env1 -> $ENV1"'
+    name: simple echo
+  - name: deploy menu
+    menu:
+      - name: server1
+        run: 'echo "!! deploy server1 !! env1 -> $ENV2"'
+      - name: server2
+        run: 'echo !! deploy server2 !!'
     env:
       ENV2: env2 value
-  - eval menu:
-      eval: |
-        echo [{"eval list1": "echo list1!"}, {"eval list2", {"run": "echo list2!"}}]
+  - name: eval menu
+    eval: |
+      echo [{"eval list1": "echo list1!"}, {"eval list2", {"run": "echo list2!"}}]
 env:
   ENV1: val_global_env
 # env: ''

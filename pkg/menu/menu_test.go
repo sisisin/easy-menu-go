@@ -9,8 +9,9 @@ import (
 
 func TestParseMenu(t *testing.T) {
 	var data = `
-main menu:
-  - list files: 'ls -al'
+menu:
+  - run: 'ls -al'
+name: 'main menu'
 env:
   ENV1: val_global_env
 work_dir: w_dir
@@ -27,7 +28,14 @@ work_dir: w_dir
 		},
 		SubMenu: &MenuConfiguration{
 			Items: []MenuItem{
-				factory.newSimpleCommand("list files", "ls -al"),
+				{
+					Kind:    Command,
+					Name:    "",
+					WorkDir: "",
+					Command: &CommandSpec{
+						Command: "ls -al",
+					},
+				},
 			},
 		},
 	}

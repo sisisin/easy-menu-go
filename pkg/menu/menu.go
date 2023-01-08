@@ -27,6 +27,7 @@ type MenuItem struct {
 	SubMenu *MenuConfiguration
 	Command *CommandSpec
 }
+
 type MenuConfiguration struct {
 	Items []MenuItem
 }
@@ -40,6 +41,7 @@ type mappedNode struct {
 	env     mapEntry
 	workDir string
 	eval    *mapEntry
+	name    string
 }
 
 func validatedNode(node *yaml.Node) mappedNode {
@@ -52,6 +54,7 @@ func validatedNode(node *yaml.Node) mappedNode {
 	var menu *mapEntry = nil
 	var run *mapEntry = nil
 	var eval *mapEntry = nil
+	var name *mapEntry = nil
 
 	nodeEntries := toEntries(node)
 
@@ -86,38 +89,50 @@ func validatedNode(node *yaml.Node) mappedNode {
 				fmt.Printf("error: duplicate keys. key `eval` must be one.")
 				os.Exit(1)
 			}
-
-		default:
+		case "name":
+			if name == nil {
+				name = &v
+			} else {
+				fmt.Printf("error: duplicate keys. key `name` must be one.")
+				os.Exit(1)
+			}
+		case "menu":
 			if menu == nil {
 				menu = &v
 			} else {
-				fmt.Printf("error: menu definition must be one. keys: `%s`, `%s`\n", menu.key.Value, v.key.Value)
+				fmt.Printf("error: duplicate keys. key `menu` must be one.")
 				os.Exit(1)
 			}
+		default:
+			fmt.Printf("unknown key: %s\n", v.key.Value)
+			os.Exit(1)
 		}
 	}
 
+	// todo: evalも見る
 	if menu != nil && run != nil {
-		fmt.Printf("error: menu definition or key `run` must be exist one, but exist both.\n")
+		fmt.Printf("%v\n", node.Line)
+		fmt.Printf("error: `menu` or `run` must be exist one, but exist both.\n")
 		os.Exit(1)
 	}
-	/*
-		todo: validation
-			- eval/runは片方だけ有効
-	*/
 
-	ret := mappedNode{}
-	if menu != nil {
-		ret.menu = menu
+	if menu == nil && run == nil && eval == nil {
+		// todo: どこのkeyでエラー出たかわかりにくい
+		fmt.Printf("error line: %v\n", node.Line)
+		fmt.Printf("`menu` or `run` must be exist one, but not exist.\n")
+		os.Exit(1)
 	}
-	if run != nil {
-		ret.run = run
-	}
-	if eval != nil {
-		ret.eval = eval
+
+	ret := mappedNode{
+		menu: menu,
+		run:  run,
+		eval: eval,
 	}
 	if workDir != nil {
 		ret.workDir = (*workDir).value.Value
+	}
+	if name != nil {
+		ret.name = (*name).value.Value
 	}
 	if env != nil {
 		ret.env = *env
@@ -128,60 +143,41 @@ func validatedNode(node *yaml.Node) mappedNode {
 
 func ParseMenu(node *yaml.Node) *MenuItem {
 	n := validatedNode(node)
-	menuName := n.menu.key.Value
-	value := n.menu.value
 
-	switch value.Kind {
-	case yaml.SequenceNode:
+	// todo: 排他validation
+	if n.run != nil {
+		return &MenuItem{
+			Kind:    Command,
+			Name:    n.name,
+			Env:     parseEnv(n.env.value),
+			WorkDir: n.workDir,
+			SubMenu: nil,
+			Command: &CommandSpec{
+				Command: n.run.value.Value,
+			},
+		}
+	}
+
+	if n.menu != nil {
+		// todo: Seqチェック
 		return &MenuItem{
 			Kind:    SubMenu,
-			Name:    menuName,
+			Name:    n.name,
 			Env:     parseEnv(n.env.value),
 			WorkDir: n.workDir,
 			SubMenu: &MenuConfiguration{
-				Items: collection.Map(value.Content, func(v *yaml.Node, _ int) MenuItem {
+				Items: collection.Map(n.menu.value.Content, func(v *yaml.Node, _ int) MenuItem {
 					return *ParseMenu(v)
 				}),
 			},
 		}
-	case yaml.ScalarNode:
-		// todo: validate if Env,WorkDir are not empty
-		c := factory.newSimpleCommand(menuName, value.Value)
-		return &c
+	}
 
-	case yaml.MappingNode:
-		// todo: validate if parent node has Env,WorkDir
-		child := validatedNode(&value)
-
-		if child.run == nil && child.eval == nil {
-			fmt.Printf("error: run menu must have key `run` or `eval`\n")
-			os.Exit(1)
+	if n.eval != nil {
+		return &MenuItem{
+			Kind: EvalMenu,
+			Name: n.name,
 		}
-
-		if child.eval != nil {
-			return &MenuItem{
-				Kind: EvalMenu,
-				Name: menuName,
-			}
-		}
-
-		if child.run != nil {
-			return &MenuItem{
-				Kind:    Command,
-				Name:    menuName,
-				Env:     parseEnv(child.env.value),
-				WorkDir: child.workDir,
-				SubMenu: nil,
-				Command: &CommandSpec{
-					Command: child.run.value.Value,
-				},
-			}
-		}
-
-		fmt.Printf("error: command definition must have `eval` or `run` value")
-		os.Exit(1)
-	default:
-		println("????????")
 	}
 
 	return nil
