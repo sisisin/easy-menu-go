@@ -95,7 +95,13 @@ func getDir(rootMenu m.MenuItem, cursor []int64, configFile string) (string, err
 		}
 	}
 
-	dir := path.Join(base, workDir)
+	var dir string
+	if path.IsAbs(workDir) {
+		dir = workDir
+	} else {
+
+		dir = path.Join(base, workDir)
+	}
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		return "", fmt.Errorf("invalid config `work_dir`, no such directory.\nused work_dir: `%v`\nresolved path: `%v`", workDir, dir)
 	}
