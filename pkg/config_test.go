@@ -46,6 +46,18 @@ func TestLoadConfigNotFound(t *testing.T) {
 	assert.Equal(t, errorMsg, "")
 }
 
+func TestLookupConfig(t *testing.T) {
+	cleanup := mockGetwd(t, "case_exists/d1/d2")
+	defer cleanup()
+	cleanup = mockExitWithPathError(t, nil)
+	defer cleanup()
+
+	configPath, document := LoadConfig("")
+
+	assert.Equal(t, path.Join(getFixturesPath(t), "case_exists/d1/easy-menu.yaml"), configPath)
+	assert.NotEqual(t, yaml.Node{}, *document)
+}
+
 func mockExitWithPathError(t *testing.T, mocked func(code int, msg string)) func() {
 	old := exit
 	cleanup := func() {

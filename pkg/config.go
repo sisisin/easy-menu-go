@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
@@ -33,7 +34,7 @@ func validConfigPathOrExit(configPathFromArg string) string {
 	checkError(err)
 
 	if configPathFromArg == "" {
-		configFile, ok := existsDefaultConfig(wd)
+		configFile, ok := lookupConfig(wd)
 		if !ok {
 			exit(1, fmt.Sprintf("Error: cannot read config file: %s\n", configFile))
 		}
@@ -47,6 +48,19 @@ func validConfigPathOrExit(configPathFromArg string) string {
 		exit(1, fmt.Sprintf("Error: cannot read config file: %s\n", configFile))
 		// 到達しない
 		return ""
+	}
+}
+
+func lookupConfig(dir string) (string, bool) {
+	configFile, ok := existsDefaultConfig(dir)
+	if ok {
+		return configFile, true
+	} else {
+		if dir == "/" {
+			return "", false
+		}
+		nextDir, _ := path.Split(path.Clean(dir))
+		return lookupConfig(nextDir)
 	}
 }
 
