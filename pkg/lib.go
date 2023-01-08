@@ -56,13 +56,21 @@ func getViewProps(target m.MenuItem, state *command.CommandState) ui.ViewProps {
 			ViewType: ui.List,
 			Title:    target.Name,
 			List: collection.Map(target.SubMenu.Items, func(v m.MenuItem, _ int) string {
-				return v.Name
+				title := v.Name
+				if title == "" && v.Kind == m.Command {
+					title = v.Command.Command
+				}
+				return title
 			}),
 		}
 	case m.Command:
+		title := target.Name
+		if title == "" {
+			title = target.Command.Command
+		}
 		return ui.ViewProps{
 			ViewType: ui.Confirm,
-			Title:    target.Name,
+			Title:    title,
 			Command:  target.Command.Command,
 		}
 	default:

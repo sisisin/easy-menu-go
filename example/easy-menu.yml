@@ -9,6 +9,7 @@ menu:
       pwd
   - run: 'echo "simple! env1 -> $ENV1"'
     name: simple echo
+  - run: 'echo run!'
   - name: deploy menu
     menu:
       - name: server1
