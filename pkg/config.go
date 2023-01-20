@@ -41,7 +41,12 @@ func validConfigPathOrExit(configPathFromArg string) string {
 
 		return configFile
 	} else {
-		configFile := filepath.Join(wd, configPathFromArg)
+		configFile := ""
+		if path.IsAbs(configPathFromArg) {
+			configFile = configPathFromArg
+		} else {
+			configFile = filepath.Join(wd, configPathFromArg)
+		}
 		if fileExists(configFile) {
 			return configFile
 		}
