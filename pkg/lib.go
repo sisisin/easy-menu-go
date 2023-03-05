@@ -1,10 +1,12 @@
 package pkg
 
 import (
-	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
+
+	"github.com/mattn/go-tty"
 
 	"github.com/sisisin/easy-menu-go/pkg/args"
 	"github.com/sisisin/easy-menu-go/pkg/collection"
@@ -82,68 +84,85 @@ func getViewProps(target m.MenuItem, state *command.CommandState) ui.ViewProps {
 }
 
 func processEasyMenu(menu m.MenuItem, configFile string) {
-	var currentViewProps ui.ViewProps
-	cursor := []int64{}
-
-	scanner := bufio.NewScanner(os.Stdin)
-
+	var current ui.ViewProps
+	var cursor []int64
 	for {
-		state := command.CommandState{
-			ProcessState: command.NotExecuting,
-			Err:          nil,
+		var next bool
+		if next, current, cursor = loop(menu, configFile, current, cursor); !next {
+			break
 		}
+	}
+}
 
-		fmt.Print("> ")
-		scanner.Scan()
-		in := scanner.Text()
+func loop(menu m.MenuItem, configFile string, current ui.ViewProps, cursor []int64) (bool, ui.ViewProps, []int64) {
+	state := command.CommandState{
+		ProcessState: command.NotExecuting,
+		Err:          nil,
+	}
 
-		if currentViewProps.ViewType == ui.CommandResult {
-			cursor = cursor[:len(cursor)-1]
-			currentViewProps = getViewProps(getCurrent(menu, cursor), &state)
-			ui.RenderMenu(currentViewProps)
-			continue
-		}
+	fmt.Print("> ")
+	in := readInput()
 
-		num, err := strconv.ParseInt(in, 10, 0)
+	if current.ViewType == ui.CommandResult {
+		cursor = cursor[:len(cursor)-1]
+		current = getViewProps(getCurrent(menu, cursor), &state)
+		ui.RenderMenu(current)
+		return true, current, cursor
+	}
 
-		if err != nil {
-			if enum, ok := err.(*strconv.NumError); ok {
-				switch enum.Err {
-				case strconv.ErrRange:
-					// no-op
-				case strconv.ErrSyntax:
-					if currentViewProps.CommandState.ProcessState == command.Failed || currentViewProps.CommandState.ProcessState == command.Succeeded {
+	num, err := strconv.ParseInt(in, 10, 0)
+
+	if err != nil {
+		if enum, ok := err.(*strconv.NumError); ok {
+			switch enum.Err {
+			case strconv.ErrRange:
+				// no-op
+			case strconv.ErrSyntax:
+				if current.CommandState.ProcessState == command.Failed || current.CommandState.ProcessState == command.Succeeded {
+					cursor = cursor[:len(cursor)-1]
+					break
+				}
+				switch in {
+				case "q":
+					fmt.Println("received `q`, exit.")
+					return false, current, cursor
+				case "b":
+					if len(cursor) > 0 {
 						cursor = cursor[:len(cursor)-1]
-						break
 					}
-					switch in {
-					case "q":
-						fmt.Println("received `q`, exit.")
-						os.Exit(0)
-					case "b":
-						if len(cursor) > 0 {
-							cursor = cursor[:len(cursor)-1]
-						}
-					case "n":
-						if currentViewProps.ViewType == ui.Confirm {
-							cursor = cursor[:len(cursor)-1]
-						}
-					case "y":
-						if currentViewProps.ViewType == ui.Confirm {
-							state = command.GetSelectedCommandState(menu, cursor, configFile)
-						}
+				case "n":
+					if current.ViewType == ui.Confirm {
+						cursor = cursor[:len(cursor)-1]
+					}
+				case "y":
+					if current.ViewType == ui.Confirm {
+						state = command.GetSelectedCommandState(menu, cursor, configFile)
 					}
 				}
 			}
-		} else {
-			current := getCurrent(menu, cursor)
-			idx := int(num - 1)
-			if current.Kind == m.SubMenu && 0 <= idx && idx < len(current.SubMenu.Items) {
-				cursor = append(cursor, num-1)
-			}
 		}
-
-		currentViewProps = getViewProps(getCurrent(menu, cursor), &state)
-		ui.RenderMenu(currentViewProps)
+	} else {
+		current := getCurrent(menu, cursor)
+		idx := int(num - 1)
+		if current.Kind == m.SubMenu && 0 <= idx && idx < len(current.SubMenu.Items) {
+			cursor = append(cursor, num-1)
+		}
 	}
+
+	current = getViewProps(getCurrent(menu, cursor), &state)
+	ui.RenderMenu(current)
+	return true, current, cursor
+}
+
+func readInput() string {
+	tty, err := tty.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer tty.Close()
+	r, err := tty.ReadRune()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(r)
 }
