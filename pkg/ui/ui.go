@@ -2,11 +2,9 @@ package ui
 
 import (
 	"fmt"
-	"io"
-	"os"
-
 	"github.com/sisisin/easy-menu-go/pkg/args"
 	"github.com/sisisin/easy-menu-go/pkg/command"
+	"os"
 )
 
 type ViewType uint32
@@ -74,27 +72,14 @@ func renderExecuting(props ViewProps) {
 	fmt.Println("---------------------")
 
 	cmd := props.CommandState.Cmd
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		printFail(props, err)
-		return
-	}
-	defer stdout.Close()
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		printFail(props, err)
-		return
-	}
-	defer stderr.Close()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 
 	if err := cmd.Start(); err != nil {
 		printFail(props, err)
 		return
 	}
-
-	go io.Copy(os.Stdout, stdout)
-	go io.Copy(os.Stderr, stderr)
 
 	if err := cmd.Wait(); err != nil {
 		printFail(props, err)

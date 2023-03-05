@@ -1,5 +1,7 @@
 name: main menu
 menu:
+  - name: bash
+    run: bash
   - name: echo command with option
     env:
       ENV1: val_env1_override
